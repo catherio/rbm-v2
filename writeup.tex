@@ -4,7 +4,7 @@
 \usepackage{enumerate}
 \usepackage{setspace}
 
-\title{Project Proposal:\\ V1- and V2-like representations in sparse networks trained on natural images}
+\title{Project Report:\\ V1- and V2-like representations in sparse networks trained on natural images}
 \author{Catherine Olsson}
 
 \begin{document}
@@ -23,6 +23,10 @@ A variety of different objective functions give rise to oriented Gabor-like filt
 So far, I have discovered two existing approachs, in which the authors compare the second layer of a multi-layer network with V2 filter properties. Hyvarinen et al. 2005 apply ICA to the outputs of a hand-crafted set of complex-cell-like filter outputs that span frequency bands. The result is a set of second-stage units which preserve the orientation tuning of their constituent filters, but span across frequency bands to produce edge-like filters. 
 
 Lee et al. 2007 take a different approach, in which both sets of filters are learned. These authors construct two layers of a deep belief net, using a restricted Boltzmann machine (RBM) approach. They train the layers greedily. Moreover, they enforce an additional sparsity constraint, to encourage the learning of Gabor-like features. Their second layer contains units selective for colinear (“contour”) features as well as corners and junctions. 
+
+\section*{RBMs}
+``The RBM tries to maximize the likelihood of the data using a particular graphical model.'' ``The method gained popularity for initializing deep neural networks with the weights of independent RBMs. This method is known as unsupervised pre-training.'' (scikit-learn.org docs)
+\url{scikit-learn.org/stable/modules/neural_networks.html}
 
 \section*{Approach}
 
