@@ -447,6 +447,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0] // batch_size
+    print('Going with ' + str(n_train_batches) + ' batches of size ' + str(batch_size))
 
     # allocate symbolic variables for the data
     index = T.lscalar()    # index to a [mini]batch
@@ -490,19 +491,23 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
         name='train_rbm'
     )
 
-    plotting_time = 0.
+    plotting_time = 0.0
     start_time = timeit.default_timer()
 
     # go through training epochs
-    print('Starting training epochs')
+    print('Starting training epochs: ' + str(training_epochs))
+
     for epoch in range(training_epochs):
 
-        # go through the training set
+        epoch_tic = timeit.default_timer()
+         # go through the training set
         mean_cost = []
         for batch_index in range(n_train_batches):
-            mean_cost += [train_rbm(batch_index)]
-
+             mean_cost += [train_rbm(batch_index)]
+        epoch_toc = timeit.default_timer()
+        
         print('Training epoch %d, cost is ' % epoch, numpy.mean(mean_cost))
+        print('Time elapsed is ' + str(epoch_toc - epoch_tic))
 
         # Plot filters after each training epoch
         plotting_start = timeit.default_timer()
