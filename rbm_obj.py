@@ -4,24 +4,10 @@ RBM object, borrowed from the Theano RBM tutorial
 
 from __future__ import print_function
 
-#import timeit
-#import six.moves.cPickle as pickle
-#import gzip
-#import os
-#import sys
-
-#try:
-#    import PIL.Image as Image
-#except ImportError:
-#    import Image
-
 import numpy
 import theano
 import theano.tensor as T
 from theano.tensor.shared_randomstreams import RandomStreams
-
-#from utils import tile_raster_images
-
 
 class RBM(object):
     """Restricted Boltzmann Machine (RBM)  """
