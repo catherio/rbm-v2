@@ -27,7 +27,7 @@ def load_data(dataset):
         new_path = os.path.join(
             os.path.split(__file__)[0],
             "..",
-            "data",
+            "../data",
             dataset
         )
         if os.path.isfile(new_path) or data_file == 'mnist.pkl.gz':

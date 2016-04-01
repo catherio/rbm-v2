@@ -8,10 +8,6 @@ to those without visible-visible and hidden-hidden connections.
 from __future__ import print_function
 import timeit
 import os
-try:
-    import PIL.Image as Image
-except ImportError:
-    import Image
 
 import numpy
 import theano
@@ -20,21 +16,21 @@ from theano.tensor.shared_randomstreams import RandomStreams
 
 # Modular components
 from rbm_obj import RBM
-from load_data import load_data
+from load_data import load_data # choose data source
 from sample_rbm import sample_rbm
 from train_rbm import train_rbm
 
 # Continued below
 def test_rbm(learning_rate=0.1, training_epochs=15,
              dataset='mnist.pkl.gz', batch_size=20,
-             n_chains=20, n_samples=10, output_folder='rbm_plots',
+             n_chains=20, n_samples=10, output_folder='../figs',
              n_hidden=500):
     """
     Demonstrate how to train and afterwards sample from it using Theano.
     This is demonstrated on MNIST.
     :param learning_rate: learning rate used for training the RBM
     :param training_epochs: number of epochs used for training
-    :param dataset: path the the pickled dataset
+    :param dataset: path to the pickled dataset
     :param batch_size: size of a batch used to train the RBM
     :param n_chains: number of parallel Gibbs chains to be used for sampling
     :param n_samples: number of samples to plot for each chain
@@ -47,6 +43,9 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     datasets = load_data(dataset)
     train_set_x, train_set_y = datasets[0]
     test_set_x, test_set_y = datasets[2]
+
+    input_size = train_set_x.get_value().shape[1]
+
     print('End dataset load')
 
     #################################
@@ -60,14 +59,14 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     x = T.matrix('x')  # the data is presented as rasterized images
 
     # construct the RBM class
-    rbm = RBM(input=x, n_visible=28 * 28, # TODO TODO TODO make this data-dependent
+    rbm = RBM(input=x, n_visible=input_size,
               n_hidden=n_hidden, numpy_rng=rng, theano_rng=theano_rng)
 
     #################################
     #     Training the RBM          #
     #################################
     print('Training:')
-    train_rbm(rbm, x, train_set_x, batch_size, n_hidden, learning_rate, training_epochs, output_folder)
+    train_rbm(rbm, x, train_set_x, batch_size, learning_rate, training_epochs, output_folder)
 
     
 

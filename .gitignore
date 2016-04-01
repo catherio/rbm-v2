@@ -3,4 +3,6 @@
 *.pdf
 *.pyc
 *~
-*_plots/*'
+data/*
+figs/*
+hpc_output/*
