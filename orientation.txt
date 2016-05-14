@@ -1,0 +1,37 @@
+Get oriented!
+
+Decided:
+- use version control to SCP back and forth
+- develop locally wherever possible. remote dev is not THAT much better really, at least not at sane scales
+- there is no .ipy notebook
+
+Did:
+- got an emacs REPL as per jhamrick's advice
+- wrote load_vanhateren function within load_data, but it does not make patches
+
+UI fixes:
+- get "ropemacs" to make it easier to change variable names
+- why does it always switch my buffer after I do C-c |?
+- bind C-c r to send region
+- make a location-aware "rootpath" script
+
+Next concrete steps:
+- implement loading all the images BEFORE the make_patches part
+  - TODO figure out why the size is different
+- implement the make_patches subpart of load_vanhateren in load_data
+
+- TODO why aren't we using the alternate data_dir?
+
+- compare dataset size between vanhateren and the numbers, to attain similar size and runtime
+- time the numbers - on laptop, on cpu, on gpu - to get a sense of what we're up against
+
+Tangential but probably useful steps:
+- write some tests that I can run to make sure everything is in good shape, or at least that I *know* what isn't in good shape
+
+Confusions:
+
+ANSWERS:
+- Q: how do I run the debugger again? (A: it's pdb.runcall(load_data, 'vanhateren'))
+- Q: how does load_data work currently? was I working one line at a time? how should I make it work? (A: yes, I was stepping through the function! yay!)
+
+
