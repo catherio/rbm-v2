@@ -45,6 +45,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     train_set_x, train_set_y = datasets[0]
     test_set_x, test_set_y = datasets[2]
 
+    # At this point, train_set_x is a theano Tensor
     input_size = train_set_x.get_value().shape[1]
 
     print('End dataset load')

@@ -21,16 +21,10 @@ def load_data(dataset):
     # LOAD DATA #
     #############
 
-    # Download the MNIST dataset if it is not present
     data_dir, data_file = os.path.split(dataset)
     if data_dir == "" and not os.path.isfile(dataset):
         # Check if dataset is in the data directory.
-        new_path = os.path.join(
-            os.path.split(__file__)[0],
-            "..",
-            "data",
-            dataset
-        )
+        new_path = os.path.join("..", "data", dataset)
         if os.path.isfile(new_path) or data_file == 'mnist.pkl.gz':
             dataset = new_path
 
@@ -46,6 +40,8 @@ def load_data(dataset):
     # the number of rows in the input. It should give the target
     # to the example with the same index in the input.
 
+    import pdb; pdb.set_trace()
+
     def shared_dataset(data_xy, borrow=True):
         """ Function that loads the dataset into shared variables
         The reason we store our dataset in shared variables is to allow
@@ -55,10 +51,10 @@ def load_data(dataset):
         variable) would lead to a large decrease in performance.
         """
         data_x, data_y = data_xy
-        shared_x = theano.shared(numpy.asarray(data_x,
+        shared_x = theano.shared(np.asarray(data_x,
                                                dtype=theano.config.floatX),
                                  borrow=borrow)
-        shared_y = theano.shared(numpy.asarray(data_y,
+        shared_y = theano.shared(np.asarray(data_y,
                                                dtype=theano.config.floatX),
                                  borrow=borrow)
         # When storing data on the GPU it has to be stored as floats
@@ -67,7 +63,7 @@ def load_data(dataset):
         # we need them as ints (we use labels as index, and if they are
         # floats it doesn't make sense) therefore instead of returning
         # ``shared_y`` we will have to cast it to int. This little hack
-        # lets ous get around this issue
+        # lets us get around this issue
         return shared_x, T.cast(shared_y, 'int32')
 
     test_set_x, test_set_y = shared_dataset(test_set)
@@ -84,20 +80,40 @@ def load_vanhateren(dataset):
     data_dir, data_file = os.path.split(dataset)
     assert(data_file == 'vanhateren')
 
-    data_dir = '../data/vanhateren/'
+    data_dir = os.path.join('..', 'data', 'vanhateren')
         # alternate data_dir not currently working
     imc_or_iml = 'iml'
     nIms = 20 # TODO: specified in the paper as 2000
 
     # Get the data, downloading if needed, but don't force download
     ims = get_vanhateren(nIms, imc_or_iml, data_dir, False)
+    
+    train_size = 50000
+    test_size = 10000
+    # We don't actually need any validation set for this purpose
 
-    # TODO: Load the patches
+    # Dataset sizes are matched to MNIST for now, but
+    # in the paper the number of patches was specified as 10,000
+
+    # Split into patches
     patchsz = 32
-    n_patches = 1000 # TODO: specified in the paper as 10,000
-    patches = make_patches(data_dir, patchsz, which_ims, n_patches)
 
-    # TODO: make train/test/etc
+    train_x = make_patches(ims, patchsz, train_size)
+    train_x = np.reshape(train_x,
+                        [train_x.shape[0], patchsz*patchsz])
+
+    test_x = make_patches(ims, patchsz, test_size)
+    test_x = np.reshape(test_x,
+                        [test_x.shape[0], patchsz*patchsz])
+
+    # Note on scaling the intensity values:
+    # These are now scaled in (0.0, 1.0)
+    # but you can multiply by 255 to view with im.show
+
+    return [[train_x, []],
+            [[], []],
+            [test_x, []]]
+
 
 def get_vanhateren(nIms, imc_or_iml, data_dir, force):
     filename_spec = 'imk%.5d.' + imc_or_iml
@@ -120,22 +136,50 @@ def get_vanhateren(nIms, imc_or_iml, data_dir, force):
 
     datasz = [1024, 1536]
     datatype = 'uint16'
+    datamax = 4095.0 # the max to clip at and divide by
 
     def read_image(dataloc):
-        # datasz and datatype are inherited from context
+        # datasz, datatype, datamax are inherited from context
         readfile = open(dataloc, 'rb').read()
         im_array = np.fromstring(readfile, dtype=datatype).byteswap()
         im_array = im_array.reshape(datasz)
         im_array = im_array.astype('float32')
+        im_array = im_array / datamax
+        im_array[im_array > 1] = 1 # clip outliers
         return im_array
         # NOTE: this format can be used with
         # im = Image.fromarray(im_array) if desired
+        # and inspected with im.show() or im.save('tmp.gif')
+
 
     all_files = [os.path.join(data_dir, filename_spec % i) for i in which_ims]
     ims = map(read_image, all_files)
     return ims
 
+
+def make_patches(ims, patchsz, n_patches):
+    [imrows, imcols] = ims[0].shape
+    assert(patchsz < imrows)
+    assert(patchsz < imcols)
+
+    patches = np.empty([n_patches, patchsz, patchsz], dtype=ims[0].dtype)
+
+    rng = np.random
+    src_ims = rng.randint(0, len(ims), n_patches)
+    row_offsets = rng.randint(imrows-patchsz+1, size=n_patches)
+    col_offsets = rng.randint(imcols-patchsz+1, size=n_patches)
+
+    for put_here, src, r, c in zip(patches, src_ims, row_offsets, col_offsets):
+        put_here[:] = ims[src][r:r+patchsz, c:c+patchsz]
+
+    return patches
+
+
 ################ MNIST #####################
+
+# train_set is [(50000, 784), (50000,)] (where 784 = 28*28)
+# valid_set is [(10000, 784), (10000,)]
+# test_set is [(10000, 784), (10000,)]
 
 def load_MNIST(dataset):
     data_dir, data_file = os.path.split(dataset)
@@ -153,51 +197,11 @@ def load_MNIST(dataset):
 
     # Load the dataset
     print('... loading data')
+
     with gzip.open(dataset, 'rb') as f:
-        try:
-            train_set, valid_set, test_set = pickle.load(f, encoding='latin1')
-        except:
-            train_set, valid_set, test_set = pickle.load(f)
+        [train_set, valid_set, test_set] = pickle.load(f)
+
+    return [train_set, valid_set, test_set]
 
 
-def make_patches(data_dir, patchsz, which_ims, n_patches):
-    return 1
 
-#patchsz = 32;#
-#x_starts = range(0, datasz[0], patchsz)
-#y_starts = range(0, datasz[1], patchsz)
-#
-## Paper result:
-## "We used 100,000 14-by-14 image patches randomly sampled from an #ensemble of 2000 images; each subset of 200 patches was used as a #mini-batch."
-#
-## TODO: make this awesome
-#images = np.asarray(map(self.read_image, items))
-#
-## TODO: then use this
-#rval4 = random_patches(images[:, :, :, None], N, prows, pcols, rng)
-#return rval4[:, :, :, 0]
-#
-## TODO: this code should do it
-#def random_patches(images, N, rows, cols, rng, channel_major=False):
-#    if channel_major:
-#        n_imgs, iF, iR, iC = images.shape
-#        rval = np.empty((N, iF, rows, cols), dtype=images.dtype)
-#    else:
-#        n_imgs, iR, iC, iF = images.shape
-#        rval = np.empty((N, rows, cols, iF), dtype=images.dtype)
-#
-#    srcs = rng.randint(n_imgs, size=N)
-#
-#    if rows > iR or cols > iC:
-#        raise ValueError('cannot extract patches', (R, C))
-#
-#    roffsets = rng.randint(iR - rows + 1, size=N)
-#    coffsets = rng.randint(iC - cols + 1, size=N)
-#
-#    for rv_i, src_i, ro, co in zip(rval, srcs, roffsets, coffsets):
-#        if channel_major:
-#            rv_i[:] = images[src_i, :, ro: ro + rows, co : co + cols]
-#        else:
-#            rv_i[:] = images[src_i, ro: ro + rows, co : co + cols]
-#    return rval
-#
