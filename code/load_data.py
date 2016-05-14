@@ -78,41 +78,53 @@ def load_data(dataset):
             (test_set_x, test_set_y)]
     return rval
 
+################ VAN HATEREN #####################
+
 def load_vanhateren(dataset):
     data_dir, data_file = os.path.split(dataset)
     assert(data_file == 'vanhateren')
 
-    # alternate data_dir not currently working, so just use this one
     data_dir = '../data/vanhateren/'
+        # alternate data_dir not currently working
+    imc_or_iml = 'iml'
     nIms = 20 # TODO: specified in the paper as 2000
-    filename_spec = 'imk%.5d.iml'
 
-    # check if the highest-numbered file exists
-    max_file = os.path.join(data_dir, filename_spec % (nIms-1))
-    if not os.path.isfile(max_file):
+    # Get the data, downloading if needed, but don't force download
+    ims = get_vanhateren(nIms, imc_or_iml, data_dir, False)
+
+    # TODO: Load the patches
+    patchsz = 32
+    n_patches = 1000 # TODO: specified in the paper as 10,000
+    patches = make_patches(data_dir, patchsz, which_ims, n_patches)
+
+    # TODO: make train/test/etc
+
+def get_vanhateren(nIms, imc_or_iml, data_dir, force):
+    filename_spec = 'imk%.5d.' + imc_or_iml
+
+    which_ims = range(1,nIms+1)
+    max_file = os.path.join(data_dir, filename_spec % which_ims[-1])
+
+    if (not os.path.isfile(max_file) or force):
         origin = (
-        'http://cin-11.medizin.uni-tuebingen.de:61280/vanhateren/imc/'
+        'http://cin-11.medizin.uni-tuebingen.de:61280/vanhateren/' + imc_or_iml + '/'
         ) 
         
         print('Downloading data from %s' % origin)
-        os.chdir(data_dir)
-        for i in range(nIms):
-            filename = filename_spec % i
-            urllib.request.urlretrieve(origin, filename)
-        os.chdir('../../code')
+        for i in which_ims:
+            getfile = os.path.join(origin, filename_spec % i)
+            putfile = os.path.join(data_dir, filename_spec % i)
+            urllib.request.urlretrieve(getfile, putfile)
 
         print('Done downloading')
 
-    patchsz = 32
-    which_ims = range(nIms)
-    n_patches = 1000 # TODO: specified in the paper as 10,000
     datasz = [1024, 1536]
     datatype = 'uint16'
 
     def read_image(dataloc):
         # datasz and datatype are inherited from context
         readfile = open(dataloc, 'rb').read()
-        im_array = np.fromstring(readfile, dtype=datatype).byteswap() # ????? RESTART HERE why isn't this the right size?
+        im_array = np.fromstring(readfile, dtype=datatype).byteswap()
         im_array = im_array.reshape(datasz)
         im_array = im_array.astype('float32')
         return im_array
@@ -120,14 +132,10 @@ def load_vanhateren(dataset):
         # im = Image.fromarray(im_array) if desired
 
     all_files = [os.path.join(data_dir, filename_spec % i) for i in which_ims]
-
-    import pdb; pdb.set_trace()
     ims = map(read_image, all_files)
+    return ims
 
-    # TODO: Load the patches
-    patches = make_patches(data_dir, patchsz, which_ims, n_patches)
-
-    # TODO: make train/test/etc
+################ MNIST #####################
 
 def load_MNIST(dataset):
     data_dir, data_file = os.path.split(dataset)
