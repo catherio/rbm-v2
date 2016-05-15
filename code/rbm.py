@@ -24,7 +24,7 @@ from train_rbm import train_rbm
 # Continued below
 def test_rbm(learning_rate=0.1, training_epochs=15,
              dataset='mnist.pkl.gz', batch_size=20,
-             n_chains=20, n_samples=10, output_folder='../figs',
+             n_chains=20, n_samples=4, output_folder='../figs',
              n_hidden=500):
     """
     Demonstrate how to train and afterwards sample from it using Theano.
@@ -79,5 +79,5 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
 
     os.chdir('../')
 
-if __name__ == '__main__':
-    test_rbm()
+#if __name__ == '__main__':
+#    test_rbm()

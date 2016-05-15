@@ -5,6 +5,8 @@
 
 from __future__ import print_function
 import os
+import datetime
+import math
 
 try:
     import PIL.Image as Image
@@ -73,24 +75,33 @@ def sample_rbm(rbm, test_set_x, n_chains, n_samples, output_folder, rng):
 
     # create a space to store the image for plotting ( we need to leave
     # room for the tile_spacing as well)
+
+    img_side = math.sqrt(rbm.n_visible)
+    tile_space = 1
+
     image_data = numpy.zeros(
-        (29 * n_samples + 1, 29 * n_chains - 1),
+        ((img_side + tile_space) * n_samples + 1,
+         (img_side + tile_space) * n_chains - 1),
         dtype='uint8'
     )
+
     for idx in range(n_samples):
         # generate `plot_every` intermediate samples that we discard,
         # because successive samples in the chain are too correlated
         vis_mf, vis_sample = sample_fn()
         print(' ... plotting sample %d' % idx)
-        image_data[29 * idx:29 * idx + 28, :] = tile_raster_images(
+        image_data[(img_side + tile_space) * idx :
+                    (img_side + tile_space) * idx + img_side,
+                    :] = tile_raster_images(
             X=vis_mf,
-            img_shape=(28, 28),
+            img_shape=(img_side, img_side),
             tile_shape=(1, n_chains),
-            tile_spacing=(1, 1)
+            tile_spacing=(tile_space, tile_space)
         )
 
     # construct image
     image = Image.fromarray(image_data)
-    image.save('samples.png')
-
+    
+    nowstr = datetime.datetime.now().strftime("%m_%d_%I:%M%p")
+    image.save('samples_' + nowstr + '.png')
 

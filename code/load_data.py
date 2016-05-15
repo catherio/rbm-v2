@@ -40,8 +40,6 @@ def load_data(dataset):
     # the number of rows in the input. It should give the target
     # to the example with the same index in the input.
 
-    import pdb; pdb.set_trace()
-
     def shared_dataset(data_xy, borrow=True):
         """ Function that loads the dataset into shared variables
         The reason we store our dataset in shared variables is to allow
