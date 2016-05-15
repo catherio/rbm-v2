@@ -4,6 +4,7 @@
 
 from __future__ import print_function
 import timeit
+import datetime
 import os
 try:
     import PIL.Image as Image
@@ -52,10 +53,6 @@ def train_rbm(rbm, x, train_set_x, batch_size, learning_rate, training_epochs, o
     plotting_time = 0.0
     start_time = timeit.default_timer()
 
-    # go through training epochs
-    # TEST ONLY
-    training_epochs = 0
-    #
     print('Starting training epochs: ' + str(training_epochs))
 
     for epoch in range(training_epochs):
@@ -63,8 +60,16 @@ def train_rbm(rbm, x, train_set_x, batch_size, learning_rate, training_epochs, o
         epoch_tic = timeit.default_timer()
          # go through the training set
         mean_cost = []
+
         for batch_index in range(n_train_batches):
              mean_cost += [train_rbm_batch(batch_index)]
+             if (batch_index % 100 == 0):
+                 batch_toc = timeit.default_timer()
+                 per_batch = (batch_toc - epoch_tic) / (batch_index+1)
+                 rem = (n_train_batches - batch_index)*per_batch
+                 rem_str = str(datetime.timedelta(seconds=round(rem)))
+                 print('Estimated remaining epoch time: ' + rem_str)
+             
         epoch_toc = timeit.default_timer()
         
         print('Training epoch %d, cost is ' % epoch, numpy.mean(mean_cost))
@@ -76,7 +81,8 @@ def train_rbm(rbm, x, train_set_x, batch_size, learning_rate, training_epochs, o
         image = Image.fromarray(
             tile_raster_images(
                 X=rbm.W.get_value(borrow=True).T,
-                img_shape=(28, 28),
+                img_shape=(numpy.sqrt(rbm.n_visible),
+                           numpy.sqrt(rbm.n_visible)),
                 tile_shape=(10, 10),
                 tile_spacing=(1, 1)
             )
