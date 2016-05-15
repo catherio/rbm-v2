@@ -13,6 +13,8 @@ pip install --user Image
 pip install --user six
 pip install --user timeit
 
-cd /home/cao324/rbm/
+cd /home/cao324/rbm/code
 
-python -B code/rbm.py
+# python -B code/rbm.py
+python -B -c 'from rbm import test_rbm; test_rbm(dataset="mnist.pkl.gz")'
+# from foo import hello; print hello()'
