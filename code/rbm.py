@@ -8,7 +8,9 @@ to those without visible-visible and hidden-hidden connections.
 # Import all the things!
 from __future__ import print_function
 import timeit
+import datetime
 import os
+import inspect
 
 import numpy
 import theano
@@ -36,6 +38,27 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     :param n_chains: number of parallel Gibbs chains to be used for sampling
     :param n_samples: number of samples to plot for each chain
     """
+
+    #################################
+    #      Set output folder        #
+    #################################
+
+    nowstr = datetime.datetime.now().strftime("%m_%d_%H%M")
+    data_dir, data_file = os.path.split(dataset)
+    data_name = data_file.split('.')[0]
+
+    output_folder = os.path.join(output_folder, nowstr + '_' + data_name)
+    if not os.path.isdir(output_folder):
+        os.makedirs(output_folder)
+    output_folder = os.path.realpath(output_folder)
+
+    cur = os.getcwd()
+    os.chdir(output_folder)
+    f = inspect.currentframe()    
+    with open("params.txt", "w") as txt:
+        txt.write(str(inspect.getargvalues(f).locals))
+    os.chdir(cur)
+
 
     #################################
     #      Downloading data         #
@@ -67,6 +90,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     #################################
     #     Training the RBM          #
     #################################
+
     print('Training:')
     train_rbm(rbm, x, train_set_x, batch_size, learning_rate, training_epochs, output_folder)
 
@@ -76,8 +100,8 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     print('Sampling:')
     sample_rbm(rbm, test_set_x, n_chains, n_samples, output_folder, rng)
 
-
-    os.chdir('../')
-
 #if __name__ == '__main__':
 #    test_rbm()
+
+# Can set training_epochs = 0 to skip training
+# 

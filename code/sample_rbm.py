@@ -5,7 +5,6 @@
 
 from __future__ import print_function
 import os
-import datetime
 import math
 
 try:
@@ -23,6 +22,7 @@ def sample_rbm(rbm, test_set_x, n_chains, n_samples, output_folder, rng):
     # set output directory
     if not os.path.isdir(output_folder):
         os.makedirs(output_folder)
+    cur = os.getcwd()
     os.chdir(output_folder)
 
     # find out the number of test samples
@@ -102,6 +102,6 @@ def sample_rbm(rbm, test_set_x, n_chains, n_samples, output_folder, rng):
     # construct image
     image = Image.fromarray(image_data)
     
-    nowstr = datetime.datetime.now().strftime("%m_%d_%I:%M%p")
-    image.save('samples_' + nowstr + '.png')
+    image.save('samples.png')
 
+    os.chdir(cur)

@@ -101,7 +101,6 @@ class RBM(object):
         # **** WARNING: It is not a good idea to put things in this list
         # other than shared variables created in this function.
         self.params = [self.W, self.hbias, self.vbias]
-        # end-snippet-1
 
     def free_energy(self, v_sample):
         ''' Function to compute the free energy '''
@@ -177,7 +176,6 @@ class RBM(object):
         return [pre_sigmoid_h1, h1_mean, h1_sample,
                 pre_sigmoid_v1, v1_mean, v1_sample]
 
-    # start-snippet-2
     def get_cost_updates(self, lr=0.1, persistent=None, k=1):
         """This functions implements one step of CD-k or PCD-k
         :param lr: learning rate used to train the RBM
@@ -201,7 +199,6 @@ class RBM(object):
             chain_start = ph_sample
         else:
             chain_start = persistent
-        # end-snippet-2
         # perform actual negative phase
         # in order to implement CD-k/PCD-k we need to scan over the
         # function that implements one gibbs step k times.
@@ -226,7 +223,7 @@ class RBM(object):
             outputs_info=[None, None, None, None, None, chain_start],
             n_steps=k
         )
-        # start-snippet-3
+
         # determine gradients on RBM parameters
         # note that we only need the sample at the end of the chain
         chain_end = nv_samples[-1]
@@ -235,7 +232,7 @@ class RBM(object):
             self.free_energy(chain_end))
         # We must not compute the gradient through the gibbs sampling
         gparams = T.grad(cost, self.params, consider_constant=[chain_end])
-        # end-snippet-3 start-snippet-4
+
         # constructs the update dictionary
         for gparam, param in zip(gparams, self.params):
             # make sure that the learning rate is of the right dtype
@@ -254,7 +251,6 @@ class RBM(object):
                                                            pre_sigmoid_nvs[-1])
 
         return monitoring_cost, updates
-        # end-snippet-4
 
     def get_pseudo_likelihood_cost(self, updates):
         """Stochastic approximation to the pseudo-likelihood"""
