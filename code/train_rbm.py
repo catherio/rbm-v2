@@ -11,6 +11,7 @@ try:
 except ImportError:
     import Image
 
+import six.moves.cPickle as pickle
 import numpy
 import theano
 import theano.tensor as T
@@ -73,8 +74,11 @@ def train_rbm(rbm, x, train_set_x, batch_size, learning_rate, training_epochs, o
              
         epoch_toc = timeit.default_timer()
 
-        with open("train_costs.txt", "a") as myfile:
+        with open('train_costs.txt', 'a') as myfile:
             myfile.write('Training epoch %d, cost is ' % epoch + str(numpy.mean(mean_cost)) + '\n')
+
+        with open('rbm.pkl', 'wb') as pkl:
+            pickle.dump(rbm, pkl)
 
         print('Training epoch %d, cost is ' % epoch, numpy.mean(mean_cost))
         print('Time elapsed is ' + str(epoch_toc - epoch_tic))
