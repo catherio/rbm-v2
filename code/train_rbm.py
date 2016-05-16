@@ -20,6 +20,7 @@ from utils import tile_raster_images
 def train_rbm(rbm, x, train_set_x, batch_size, learning_rate, training_epochs, output_folder):
     if not os.path.isdir(output_folder):
         os.makedirs(output_folder)
+    cur = os.getcwd()
     os.chdir(output_folder)
 
     # compute number of minibatches for training, validation and testing
@@ -71,7 +72,10 @@ def train_rbm(rbm, x, train_set_x, batch_size, learning_rate, training_epochs, o
                  print('Estimated remaining epoch time: ' + rem_str)
              
         epoch_toc = timeit.default_timer()
-        
+
+        with open("train_costs.txt", "a") as myfile:
+            myfile.write('Training epoch %d, cost is ' % epoch + str(numpy.mean(mean_cost)) + '\n')
+
         print('Training epoch %d, cost is ' % epoch, numpy.mean(mean_cost))
         print('Time elapsed is ' + str(epoch_toc - epoch_tic))
 
@@ -96,3 +100,7 @@ def train_rbm(rbm, x, train_set_x, batch_size, learning_rate, training_epochs, o
     pretraining_time = (end_time - start_time) - plotting_time
 
     print ('Training took %f minutes' % (pretraining_time / 60.))
+    with open("train_costs.txt", "a") as myfile:
+        myfile.write('Training took %f minutes' % (pretraining_time / 60.) + '\n')
+
+    os.chdir(cur)
