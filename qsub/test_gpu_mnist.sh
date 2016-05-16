@@ -4,18 +4,18 @@
 #PBS -l mem=4GB
 #PBS -m abe
 #PBS -M cao324@nyu.edu
-#PBS -N test_rbm_gpu
+#PBS -N test_rbm_gpu_mnist
 #PBS -e localhost:/home/cao324/rbm/hpc_output/${PBS_JOBID}_error_${PBS_JOBNAME}
 #PBS -o localhost:/home/cao324/rbm/hpc_output/${PBS_JOBID}_output_${PBS_JOBNAME}
 
 module load python/intel/2.7.6
 module load cuda/6.5.12
 
-pip install --user Image
-pip install --user six
-pip install --user timeit
-
 cd /home/cao324/rbm/code
+
+echo "Starting now"
 
 # THEANO_FLAGS='floatX=float32,device=gpu0,lib.cnmem=1' python -B rbm.py
 THEANO_FLAGS='floatX=float32,device=gpu0,lib.cnmem=1' python -B -c 'from rbm import test_rbm; test_rbm(dataset="mnist.pkl.gz")'
+
+echo "Ending now"
