@@ -228,8 +228,19 @@ class RBM(object):
         # note that we only need the sample at the end of the chain
         chain_end = nv_samples[-1]
 
-        cost = T.mean(self.free_energy(self.input)) - T.mean(
+        # positive and negative cost from CD
+        cost_cd = T.mean(self.free_energy(self.input)) - T.mean(
             self.free_energy(chain_end))
+
+        # CO: additional sparsity cost
+        # TODO: thresh of 0.1 is hardcoded here
+        cost_sparsity = T.sum(abs(0.1 - T.mean(ph_mean)))
+
+        # CO: overall cost
+        # TODO question, does + work like this? (I think so)
+        # TODO: lambda of 10^-2 is hardcoded here
+        cost = cost_cd + 0.01 * cost_sparsity
+
         # We must not compute the gradient through the gibbs sampling
         gparams = T.grad(cost, self.params, consider_constant=[chain_end])
 
