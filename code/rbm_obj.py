@@ -20,7 +20,9 @@ class RBM(object):
         hbias=None,
         vbias=None,
         numpy_rng=None,
-        theano_rng=None
+        theano_rng=None,
+        lmbda=0,
+        sparse_thresh=0.1
     ):
         """
         RBM constructor. Defines the parameters of the model along with
@@ -42,6 +44,8 @@ class RBM(object):
 
         self.n_visible = n_visible
         self.n_hidden = n_hidden
+        self.lmbda = lmbda
+        self.sparse_thresh = sparse_thresh
 
         if numpy_rng is None:
             # create a number generator
@@ -233,13 +237,10 @@ class RBM(object):
             self.free_energy(chain_end))
 
         # CO: additional sparsity cost
-        # TODO: thresh of 0.1 is hardcoded here
-        cost_sparsity = T.sum(abs(0.1 - T.mean(ph_mean)))
+        cost_sparsity = T.sum(abs(T.constant(self.sparse_thresh) - T.mean(ph_mean)))
 
         # CO: overall cost
-        # TODO question, does + work like this? (I think so)
-        # TODO: lambda of 10^-2 is hardcoded here
-        cost = cost_cd + 0.01 * cost_sparsity
+        cost = cost_cd + T.constant(self.lmbda) * cost_sparsity
 
         # We must not compute the gradient through the gibbs sampling
         gparams = T.grad(cost, self.params, consider_constant=[chain_end])
