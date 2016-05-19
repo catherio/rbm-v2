@@ -237,7 +237,7 @@ class RBM(object):
             self.free_energy(chain_end))
 
         # CO: additional sparsity cost
-        cost_sparsity = T.sum(abs(T.constant(self.sparse_thresh) - T.mean(ph_mean)))
+        cost_sparsity = T.sum(abs(T.constant(self.sparse_thresh) - T.mean(ph_mean,0)))
 
         # CO: overall cost
         cost = cost_cd + T.constant(self.lmbda) * cost_sparsity

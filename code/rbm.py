@@ -27,7 +27,7 @@ from train_rbm import train_rbm
 def test_rbm(learning_rate=0.1, training_epochs=15,
              dataset='mnist.pkl.gz', batch_size=20,
              n_chains=20, n_samples=4, output_folder='../figs',
-             n_hidden=500, lmbda=0.01, sparse_thresh=0.1):
+             n_hidden=500, lmbda=0.01, sparse_thresh=0):
     """
     Demonstrate how to train and afterwards sample from it using Theano.
     This is demonstrated on MNIST.
@@ -43,7 +43,7 @@ def test_rbm(learning_rate=0.1, training_epochs=15,
     #      Set output folder        #
     #################################
 
-    nowstr = datetime.datetime.now().strftime("%m_%d_%H%M")
+    nowstr = datetime.datetime.now().strftime("%m_%d_%H%M%S")
     data_dir, data_file = os.path.split(dataset)
     data_name = data_file.split('.')[0]
 

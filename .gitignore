@@ -5,5 +5,6 @@
 *~
 data/*
 figs/*
+oldfigs/*
 hpc_output/*
 #*#

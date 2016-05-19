@@ -81,20 +81,17 @@ def load_vanhateren(dataset):
     data_dir = os.path.join('..', 'data', 'vanhateren')
         # alternate data_dir not currently working
     imc_or_iml = 'iml'
-    nIms = 20 # TODO: specified in the paper as 2000
+    nIms = 500 # paper had 2000
 
     # Get the data, downloading if needed, but don't force download
     ims = get_vanhateren(nIms, imc_or_iml, data_dir, False)
     
-    train_size = 50000
-    test_size = 10000
+    train_size = 1000 # MNIST was 50,000, paper had 100,000
+    test_size = 1000
     # We don't actually need any validation set for this purpose
 
-    # Dataset sizes are matched to MNIST for now, but
-    # in the paper the number of patches was specified as 10,000
-
     # Split into patches
-    patchsz = 32
+    patchsz = 14 # not sure where I got 32 from earlier
 
     train_x = make_patches(ims, patchsz, train_size)
     train_x = np.reshape(train_x,
@@ -198,6 +195,11 @@ def load_MNIST(dataset):
 
     with gzip.open(dataset, 'rb') as f:
         [train_set, valid_set, test_set] = pickle.load(f)
+        
+    # TODO FIXME: TEMPORARY TIME-SAVER for super speedy training
+    train_set = (train_set[0][0:10000,:], train_set[1][0:10000,])
+    valid_set = (valid_set[0][0:10000,:], valid_set[1][0:10000,])
+    test_set =  (test_set[0][0:10000,:],  test_set[1][0:10000,])
 
     return [train_set, valid_set, test_set]
 
