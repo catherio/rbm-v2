@@ -5,9 +5,76 @@ Decided:
 - develop locally wherever possible. remote dev is not THAT much better really, at least not at sane scales
 - there is no .ipy notebook
 
+Found:
+- One epoch with 50,000 samples is
+  - 11 / 13 mins locally (about 3 hours training 15 epochs)
+  - 6-7 mins on HPC with CPU, interactive (about 1.5 hrs mnist?)
+  - 5 mins mnist, 8 mins vanh, on GPU? (about 2 hrs vanh)
+- One epoch with 10,000 samples is
+  - 3 mins locally (about 45 mins training)
+  
 Did:
-- got an emacs REPL as per jhamrick's advice
-- wrote load_vanhateren function within load_data, but it does not make patches
+- get an emacs REPL as per jhamrick's advice
+- implement downloading van hateren images
+- implement loading in the downloaded images
+- implement make_patches for van hateren
+- check that the patches look alright
+- scale the patch intensity values to match MNIST
+- compare dataset size between vanhateren and the numbers, to attain similar size and runtime
+- implement the train/test subpart
+- get most of it running except the sampling
+- get the sampling to not be couched in 28's!
+- remove 28's dependency from training too
+- remove the hard-set training_epochs=0 (done locally, assume fine)
+- run a few batches of each locally. epoch estimate on laptop and cpu
+- get an epoch estimate - on laptop, on cpu, on gpu
+- run the thing with actual training, on van hateren, on HPC
+- cause the figs from each run to go into a folder
+- put some metadata into the folder
+- make it not be just 20 images, oops (did this on server)
+- pickle a saved net in the figs directory
+- kick off a saveable MNIST and vanh on HPC
+- add a sparsity constraint! woo!
+- run a sparsity-enabled MNIST on the HPC
+- add seconds to the folder naming scheme, to enable a flurry of submissions
+- plan the desired flocking properties
+- submit a giant flock of MNIST
+- determine that the giant flock had the constraint on backwards
+- look at the usual h values, in a trained MNIST network, to decide a sane threshold
+- *measure* sparsity in MNIST output net activations (same as above actually) (mostly) (could stand to be population sparsity)
+- (cannot do HPC on the plane)
+- determine that I was doing the mean wrong, and fix it =)
+- blasted it with sparsity and found that, YES, I now have a knob I can fiddle with! it's a real knob!
+- determined that these things just go a little haywire
+- determined that using almost no data isn't a great idea
+
+Experiment log:
+- 14:24, HPC, ran two regular 15-epoch no-sparsity vanh and mnist, with saved RBM's, so they can be pulled back for checking/playing. these took a *while* to start up.
+- 14:29, local, ran one MNIST with one epoch to save RBM
+- 02:15, four things running. 694/695 are gpu mnist/vanh and 726/728 are cpu, *with* sparsity. want to check how queuing works gpu vs. cpu. (A: 726/728 started immediately) (note: 728 needed more than 4GB mem so gave it 16GB)
+- 02:25, re-running cpu vanh as 866
+- NOTE: I did make vanhateren *smaller* in here... 14x14, not 32x32, so it's quite snappy at 10,000 patches now in this instantiation
+- 04:16etc, local?, just checking that the passed parameters work
+- 04:47ish none of my batches worked
+- 05:01 running 24 manual qsubs. these turned out to be (not backwards but) really small, with the wrong mean and thus the wrong rule
+- 12:21 running with MNIST, sparse_thresh=0 and lambda=10 (oof). Seems to be oscillating all over the place. They're struggling to get anywhere, and it doesn't look like anything
+- 12:24: lambda=0.1 is more reasonable
+- 12:29: checking lambda=0 to make sure slashing the data wasn't the problem here (hm. it's also struggling now)
+- 12:37: running a 45 minute lambda=0 experiment on 10,000 MNIST points, should be a fair comparison (yep, this looks really normal)
+- 1:25pm: running a 30 minute lambda=0.1 experiment on 10,000 (only 10 epochs, that is)
+- 2:02pm: runing at lambda=10, let's see what happens (10 epochs)
+
+Next implementation steps:
+- fiddle with lambdas, with thresh=0 (and other params?)
+- fiddle with thresh, at a reasonable lambda
+
+
+Tangential but probably useful steps:
+- make the "print" statements go to output or error?
+- pickle the vanhateren patches for consistency
+- write some tests that I can run to make sure everything is in good shape, or at least that I *know* what isn't in good shape
+- look into PCA whitening, and unwhitening
+- (guiding question) why aren't the vanh filters soaking up more relevant features? why are there noisy filters?
 
 UI fixes:
 - get "ropemacs" to make it easier to change variable names
@@ -15,23 +82,34 @@ UI fixes:
 - bind C-c r to send region
 - make a location-aware "rootpath" script
 
-Next concrete steps:
-- implement loading all the images BEFORE the make_patches part
-  - TODO figure out why the size is different
-- implement the make_patches subpart of load_vanhateren in load_data
-
-- TODO why aren't we using the alternate data_dir?
-
-- compare dataset size between vanhateren and the numbers, to attain similar size and runtime
-- time the numbers - on laptop, on cpu, on gpu - to get a sense of what we're up against
-
-Tangential but probably useful steps:
-- write some tests that I can run to make sure everything is in good shape, or at least that I *know* what isn't in good shape
-
 Confusions:
+- why have p at all? prevents useless units?
+- if you're going to have p, why not make it rectifying, not abs?
 
 ANSWERS:
 - Q: how do I run the debugger again? (A: it's pdb.runcall(load_data, 'vanhateren'))
 - Q: how does load_data work currently? was I working one line at a time? how should I make it work? (A: yes, I was stepping through the function! yay!)
+- Q: why is the file size different? (A: because I was downloading the index page repeatedly, not the files)
+- Q: why was my job not even starting? (A: that's a qsub problem, it means that the metadata at the top was wrong)
+- Q: what use is the test set in the sampling step? (A: I believe it's to seed the chains)
+- Q: is this implementation binary? (A: yes, it uses sigmoids to become probabilities *and then* passes them through a binomial)
+
+
+NB: I am drawn to run a lot of vanhaterens with different hyperparams, should I? (A: after the next pomo that's plausible)
+
+
+Tree of learning:
+
+Done:
+- Draw out what get_cost_updates is doing
+- Figure out the horrendous problem in the paper's equation
+- write out how to compute the paper's regularization term in this network
+- subtask: figure out how just to do E[h_l|image]
+
+Guiding question: where would I add sparsity to this? of what?
+- and then T.grad() it for maximum awesome ;)
+- next: make sure + works correctly
+- next: note that 0.1 is hard-coded in, twice
+
 
 
